@@ -1,0 +1,948 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: Life RPG API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health check
+  - name: users
+    description: User profile and stats
+  - name: quests
+    description: Quests and goals
+  - name: healthLogs
+    description: Health activity logging
+  - name: transactions
+    description: Financial transactions
+  - name: shop
+    description: Avatar shop items
+  - name: inventory
+    description: User inventory
+  - name: groupQuests
+    description: Group quests
+  - name: mysteryBox
+    description: Mystery box rewards
+  - name: activity
+    description: Activity feed
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    put:
+      operationId: updateMe
+      tags: [users]
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserBody"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/me/stats:
+    get:
+      operationId: getUserStats
+      tags: [users]
+      summary: Get dashboard stats summary
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserStats"
+
+  /quests:
+    get:
+      operationId: getQuests
+      tags: [quests]
+      summary: List quests
+      parameters:
+        - name: pillar
+          in: query
+          schema:
+            type: string
+            enum: [sports, health, goals, finances]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, completed, expired]
+      responses:
+        "200":
+          description: List of quests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Quest"
+    post:
+      operationId: createQuest
+      tags: [quests]
+      summary: Create a new quest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateQuestBody"
+      responses:
+        "201":
+          description: Created quest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quest"
+
+  /quests/daily:
+    get:
+      operationId: getDailyQuests
+      tags: [quests]
+      summary: Get today's daily quests (expire in 24h)
+      responses:
+        "200":
+          description: Daily quests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Quest"
+
+  /quests/{id}:
+    put:
+      operationId: updateQuest
+      tags: [quests]
+      summary: Update a quest
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateQuestBody"
+      responses:
+        "200":
+          description: Updated quest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quest"
+    delete:
+      operationId: deleteQuest
+      tags: [quests]
+      summary: Delete a quest
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Quest deleted
+
+  /quests/{id}/complete:
+    post:
+      operationId: completeQuest
+      tags: [quests]
+      summary: Complete a quest and award XP/Gold
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Completion result with rewards
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuestCompletionResult"
+
+  /health-logs:
+    get:
+      operationId: getHealthLogs
+      tags: [healthLogs]
+      summary: List health activity logs
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [workout, meal, sleep, hydration]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Health logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HealthLog"
+    post:
+      operationId: createHealthLog
+      tags: [healthLogs]
+      summary: Log a health activity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHealthLogBody"
+      responses:
+        "201":
+          description: Created log with XP earned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthLogResult"
+
+  /transactions:
+    get:
+      operationId: getTransactions
+      tags: [transactions]
+      summary: List financial transactions
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [expense, saving, income]
+      responses:
+        "200":
+          description: Transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+    post:
+      operationId: createTransaction
+      tags: [transactions]
+      summary: Add a financial transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTransactionBody"
+      responses:
+        "201":
+          description: Created transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+
+  /transactions/summary:
+    get:
+      operationId: getTransactionSummary
+      tags: [transactions]
+      summary: Get financial summary (budget tracker)
+      responses:
+        "200":
+          description: Financial summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionSummary"
+
+  /shop:
+    get:
+      operationId: getShopItems
+      tags: [shop]
+      summary: List avatar shop items
+      responses:
+        "200":
+          description: Shop items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShopItem"
+
+  /inventory:
+    get:
+      operationId: getInventory
+      tags: [inventory]
+      summary: Get user inventory
+      responses:
+        "200":
+          description: User inventory items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InventoryItem"
+
+  /inventory/purchase:
+    post:
+      operationId: purchaseItem
+      tags: [inventory]
+      summary: Purchase a shop item with Gold
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurchaseItemBody"
+      responses:
+        "200":
+          description: Purchase result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseResult"
+
+  /group-quests:
+    get:
+      operationId: getGroupQuests
+      tags: [groupQuests]
+      summary: List group quests
+      responses:
+        "200":
+          description: Group quests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupQuest"
+    post:
+      operationId: createGroupQuest
+      tags: [groupQuests]
+      summary: Create a group quest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGroupQuestBody"
+      responses:
+        "201":
+          description: Created group quest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupQuest"
+
+  /group-quests/{id}/contribute:
+    post:
+      operationId: contributeToGroupQuest
+      tags: [groupQuests]
+      summary: Add contribution to a group quest
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContributeBody"
+      responses:
+        "200":
+          description: Updated group quest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupQuest"
+
+  /mystery-box/open:
+    post:
+      operationId: openMysteryBox
+      tags: [mysteryBox]
+      summary: Open mystery box for weekly reward
+      responses:
+        "200":
+          description: Mystery box reward
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MysteryBoxReward"
+
+  /mystery-box/status:
+    get:
+      operationId: getMysteryBoxStatus
+      tags: [mysteryBox]
+      summary: Check if mystery box is available
+      responses:
+        "200":
+          description: Mystery box availability
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MysteryBoxStatus"
+
+  /activity:
+    get:
+      operationId: getActivityFeed
+      tags: [activity]
+      summary: Get recent activity feed across all pillars
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Activity feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityEvent"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        avatarName:
+          type: string
+        xp:
+          type: integer
+        gold:
+          type: integer
+        level:
+          type: integer
+        xpToNextLevel:
+          type: integer
+        streak:
+          type: integer
+        longestStreak:
+          type: integer
+        hasAura:
+          type: boolean
+        weeklyQuestsCompleted:
+          type: integer
+        createdAt:
+          type: string
+      required: [id, username, avatarName, xp, gold, level, xpToNextLevel, streak, longestStreak, hasAura, weeklyQuestsCompleted, createdAt]
+
+    UpdateUserBody:
+      type: object
+      properties:
+        username:
+          type: string
+        avatarName:
+          type: string
+
+    UserStats:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        pillars:
+          type: object
+          properties:
+            sports:
+              $ref: "#/components/schemas/PillarSummary"
+            health:
+              $ref: "#/components/schemas/PillarSummary"
+            goals:
+              $ref: "#/components/schemas/PillarSummary"
+            finances:
+              $ref: "#/components/schemas/PillarSummary"
+          required: [sports, health, goals, finances]
+        totalQuestsCompleted:
+          type: integer
+        activeBooster:
+          type: string
+          nullable: true
+        boosterMultiplier:
+          type: number
+      required: [user, pillars, totalQuestsCompleted, activeBooster, boosterMultiplier]
+
+    PillarSummary:
+      type: object
+      properties:
+        activeQuests:
+          type: integer
+        completedToday:
+          type: integer
+        totalXpEarned:
+          type: integer
+        progress:
+          type: number
+      required: [activeQuests, completedToday, totalXpEarned, progress]
+
+    Quest:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        pillar:
+          type: string
+          enum: [sports, health, goals, finances]
+        questType:
+          type: string
+          enum: [daily, weekly, challenge]
+        xpReward:
+          type: integer
+        goldReward:
+          type: integer
+        deadline:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [active, completed, expired]
+        completedAt:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        expiresAt:
+          type: string
+          nullable: true
+      required: [id, title, pillar, questType, xpReward, goldReward, status, createdAt]
+
+    CreateQuestBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        pillar:
+          type: string
+          enum: [sports, health, goals, finances]
+        questType:
+          type: string
+          enum: [daily, weekly, challenge]
+        xpReward:
+          type: integer
+        goldReward:
+          type: integer
+        deadline:
+          type: string
+      required: [title, pillar, questType, xpReward, goldReward]
+
+    UpdateQuestBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [active, completed, expired]
+        xpReward:
+          type: integer
+        goldReward:
+          type: integer
+        deadline:
+          type: string
+
+    QuestCompletionResult:
+      type: object
+      properties:
+        quest:
+          $ref: "#/components/schemas/Quest"
+        xpEarned:
+          type: integer
+        goldEarned:
+          type: integer
+        leveledUp:
+          type: boolean
+        newLevel:
+          type: integer
+          nullable: true
+        boosterApplied:
+          type: boolean
+        boosterMultiplier:
+          type: number
+        newUserXp:
+          type: integer
+        newUserGold:
+          type: integer
+      required: [quest, xpEarned, goldEarned, leveledUp, boosterApplied, boosterMultiplier, newUserXp, newUserGold]
+
+    HealthLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [workout, meal, sleep, hydration]
+        label:
+          type: string
+        value:
+          type: number
+        unit:
+          type: string
+        xpEarned:
+          type: integer
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, type, label, value, unit, xpEarned, createdAt]
+
+    CreateHealthLogBody:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [workout, meal, sleep, hydration]
+        label:
+          type: string
+        value:
+          type: number
+        unit:
+          type: string
+        notes:
+          type: string
+      required: [type, label, value, unit]
+
+    HealthLogResult:
+      type: object
+      properties:
+        log:
+          $ref: "#/components/schemas/HealthLog"
+        xpEarned:
+          type: integer
+        streakUpdated:
+          type: boolean
+        newStreak:
+          type: integer
+        boosterActivated:
+          type: boolean
+      required: [log, xpEarned, streakUpdated, newStreak, boosterActivated]
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        category:
+          type: string
+        description:
+          type: string
+          nullable: true
+        amount:
+          type: number
+        type:
+          type: string
+          enum: [expense, saving, income]
+        goldEarned:
+          type: integer
+        createdAt:
+          type: string
+      required: [id, category, amount, type, goldEarned, createdAt]
+
+    CreateTransactionBody:
+      type: object
+      properties:
+        category:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        type:
+          type: string
+          enum: [expense, saving, income]
+      required: [category, amount, type]
+
+    TransactionSummary:
+      type: object
+      properties:
+        totalIncome:
+          type: number
+        totalExpenses:
+          type: number
+        totalSavings:
+          type: number
+        savingsRate:
+          type: number
+        goldEarnedThisMonth:
+          type: integer
+        budgetCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/BudgetCategory"
+        monthlyTrend:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonthlyTrendItem"
+      required: [totalIncome, totalExpenses, totalSavings, savingsRate, goldEarnedThisMonth, budgetCategories, monthlyTrend]
+
+    BudgetCategory:
+      type: object
+      properties:
+        category:
+          type: string
+        amount:
+          type: number
+        percentage:
+          type: number
+      required: [category, amount, percentage]
+
+    MonthlyTrendItem:
+      type: object
+      properties:
+        month:
+          type: string
+        income:
+          type: number
+        expenses:
+          type: number
+        savings:
+          type: number
+      required: [month, income, expenses, savings]
+
+    ShopItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        goldCost:
+          type: integer
+        category:
+          type: string
+          enum: [helmet, armor, weapon, accessory, mount, aura]
+        rarity:
+          type: string
+          enum: [common, rare, epic, legendary]
+        imageUrl:
+          type: string
+          nullable: true
+      required: [id, name, description, goldCost, category, rarity]
+
+    InventoryItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        shopItemId:
+          type: integer
+        shopItem:
+          $ref: "#/components/schemas/ShopItem"
+        equippedSlot:
+          type: string
+          nullable: true
+        purchasedAt:
+          type: string
+      required: [id, shopItemId, shopItem, purchasedAt]
+
+    PurchaseItemBody:
+      type: object
+      properties:
+        shopItemId:
+          type: integer
+      required: [shopItemId]
+
+    PurchaseResult:
+      type: object
+      properties:
+        inventoryItem:
+          $ref: "#/components/schemas/InventoryItem"
+        goldSpent:
+          type: integer
+        remainingGold:
+          type: integer
+      required: [inventoryItem, goldSpent, remainingGold]
+
+    GroupQuest:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        pillar:
+          type: string
+          enum: [sports, health, goals, finances]
+        targetValue:
+          type: number
+        currentValue:
+          type: number
+        unit:
+          type: string
+        deadline:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [active, completed, failed]
+        memberCount:
+          type: integer
+        progress:
+          type: number
+        createdAt:
+          type: string
+      required: [id, title, pillar, targetValue, currentValue, unit, status, memberCount, progress, createdAt]
+
+    CreateGroupQuestBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        pillar:
+          type: string
+          enum: [sports, health, goals, finances]
+        targetValue:
+          type: number
+        unit:
+          type: string
+        deadline:
+          type: string
+      required: [title, pillar, targetValue, unit]
+
+    ContributeBody:
+      type: object
+      properties:
+        value:
+          type: number
+      required: [value]
+
+    MysteryBoxReward:
+      type: object
+      properties:
+        rewardType:
+          type: string
+          enum: [gold, xp, item, booster]
+        goldAmount:
+          type: integer
+          nullable: true
+        xpAmount:
+          type: integer
+          nullable: true
+        itemName:
+          type: string
+          nullable: true
+        boosterType:
+          type: string
+          nullable: true
+        message:
+          type: string
+      required: [rewardType, message]
+
+    MysteryBoxStatus:
+      type: object
+      properties:
+        available:
+          type: boolean
+        weeklyQuestsCompleted:
+          type: integer
+        weeklyQuestsRequired:
+          type: integer
+        nextAvailableAt:
+          type: string
+          nullable: true
+      required: [available, weeklyQuestsCompleted, weeklyQuestsRequired]
+
+    ActivityEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [quest_complete, health_log, transaction, level_up, purchase, mystery_box, group_quest]
+        pillar:
+          type: string
+          nullable: true
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        xpEarned:
+          type: integer
+          nullable: true
+        goldEarned:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, type, title, createdAt]

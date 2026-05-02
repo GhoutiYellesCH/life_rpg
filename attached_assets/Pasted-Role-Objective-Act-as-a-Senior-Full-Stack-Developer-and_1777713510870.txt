@@ -1,0 +1,60 @@
+Role & Objective: Act as a Senior Full-Stack Developer and an expert in Human-Focused Gamification Design. Your task is to build a "Life RPG" web application that tracks a user's life progress across four main pillars: Sports, Health, Goal Achieving, and Finances (Money Spending).
+Tech Stack Requirements:
+Framework: Next.js using TypeScript (yarn create next-app --typescript)
+.
+State Management: Redux Toolkit (@reduxjs/toolkit and react-redux) for managing global states like user XP, finances, and health stats
+.
+Styling: SCSS / Styled Components
+.
+Backend/APIs: Next.js Server-Side API routes (pages/api) acting as a RESTful backend
+.
+Database: Provision a PostgreSQL database natively using Replit Storage and manage schemas via Drizzle ORM
+.
+Deployment: Prepare the configuration for seamless deployment to Netlify (including environment variables handling)
+.
+Architecture & Design Patterns: To keep the codebase maintainable and scalable without hallucinating architecture, strictly implement the following design patterns
+:
+Singleton Pattern: Use this for global data service objects, such as the database connection instance and global user session states
+.
+Strategy Pattern: Implement this to handle different types of user quests/goals (e.g., a "Health Strategy" vs. a "Finance Strategy" for calculating points)
+.
+Builder Pattern: Use this to construct complex User Profile objects that contain their RPG stats, inventory, and historical data
+.
+Gamification Engine (The Octalysis Framework): Integrate Yu-kai Chou’s 8 Core Drives into the logic and UI of the app
+. The app must not just have "points and badges" (PBL Fallacy), but true motivational design
+:
+Epic Meaning (Core Drive 1): Create a narrative where the user's daily habits are "Saving their Kingdom"
+.
+Accomplishment (Core Drive 2): Implement dynamic Progress Bars for daily health and sports goals
+. Distinguish between Status Points (XP that only goes up to track level) and Exchangeable Points (Gold earned from saving money)
+.
+Empowerment of Creativity (Core Drive 3): Give users meaningful choices. Provide "Boosters" (e.g., a multiplier on XP if they work out 3 days in a row)
+.
+Ownership (Core Drive 4): Allow users to spend their Exchangeable Points (Gold) on virtual avatar gear or "Collection Sets" (e.g., collecting 4 seasonal badges for hitting financial budgets all year)
+.
+Social Influence (Core Drive 5): Implement a "Group Quest" feature where users can invite friends to hit a combined sports goal, and a "Brag Button" upon leveling up
+.
+Scarcity (Core Drive 6): Use Appointment Dynamics. Give them daily quests that expire in 24 hours, forcing them to log in to complete their health tracking
+.
+Unpredictability (Core Drive 7): When a user finishes all weekly goals, reward them with a "Mystery Box" (Random Reward) containing randomized bonus Gold or unique items
+.
+Loss & Avoidance (Core Drive 8): Implement Evanescent Opportunities. If a user breaks a 7-day sports streak, their virtual avatar loses a temporary "Aura" buff
+.
+Step-by-Step Execution Plan for Replit Agent: Please execute the following steps sequentially. Do not move to the next step until the previous one is fully implemented and functioning.
+Step 1: Environment & Scaffolding. Use Replit to initialize a Next.js TypeScript project. Set up the pages directory. Configure SCSS
+. Use Replit's Agent capability to provision a PostgreSQL database and create the initial tables: Users, Quests (Goals), Transactions (Money), and HealthStats
+.
+Step 2: Backend API Routes. Inside /pages/api, create RESTful endpoints (GET, POST, PUT, DELETE) for user authentication, fetching quests, updating financial logs, and syncing health data
+. Apply the Singleton and Strategy design patterns here
+.
+Step 3: State Management. Initialize a Redux Store. Create slices for UserStats (tracking XP and Gold), QuestLog (active vs. completed goals), and FinanceLedger
+. Ensure client-side JavaScript performs presubmission data validation before calling APIs to reduce server load
+.
+Step 4: Frontend Dashboard & Routing. Use Replit Design Canvas to build out the UI
+. Create an Onboarding flow utilizing "Glowing Choices" (guiding the user on exactly what to click first)
+. Build out a Client-Side Rendered (CSR) interactive Dashboard displaying the user's Avatar, Progress Bars, active Health/Sports quests, and a Financial budget tracker
+.
+Step 5: Gamification Logic. Connect the Redux state to the Octalysis logic. If a user logs a healthy meal or a workout, dispatch an action to increase Status Points (XP). If they log a financial saving, increase Exchangeable Points (Gold). Build the "Mystery Box" component for weekly completions
+.
+Step 6: Preparation for Netlify Deployment. Optimize components. Set up dynamic loading for heavy dashboard widgets to improve performance. Output a netlify.toml file setting up the build commands and environment variables required for Netlify hosting
+.
